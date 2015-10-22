@@ -16,27 +16,76 @@ import org.powerbot.script.rt6.Widget;
 
 import static org.bigmac.tearsofguthix.Resources.*;
 
-
+/**
+ * Task for collecting blue tears in the tears of guthix minigame
+ */
 public class CollectTears implements Task {
 
+    /** Reference to the client context for doing everything useful */
     private ClientContext ctx;
+    
+    /** Reference to the tile we are currently running to */
     private Tile targetTile;
-        
+    
+    /**
+     * Passes a reference to the client context to this task instance
+     * @param ctx The client context
+     */
     public CollectTears(ClientContext ctx) {
         this.ctx = ctx;
     }
-        
+    
+    /**
+     * When to activate this task
+     */ 
     @Override
     public boolean activate() {
         Widget w = ctx.widgets.select().id(WIDGET_ID).peek();
         return w.valid() 
             && w.component(COMPONENT_ID).valid();
     }
+    
+    /**
+     * What to do when activated
+     */  
+    @Override
+    public void execute() {
+        // Click blue tears
+        Player p = ctx.players.local();
+            
+        // If the player is idle or not in right place, AND not moving TO
+        // the right place...
+        if ((p.idle() || !facingBlueTears())
+            && !p.inMotion()) {
+            clickWeepingWall();
+        }
+            
+        // If we are moving, only switch targets if the initial target is
+        // no longer blue
+        if (p.inMotion()
+            && targetTile != null
+            && !tileHasBlueTears(targetTile)) {
+            clickWeepingWall();
+        }
+            
+        // Above could obviously be in one 'if', I've left it like this
+        // because it is easier to read -- the second 'if' interrupts
+        // movement if the stream changes colour while moving
+        Condition.sleep(Random.nextInt(REACTION_LOWER, REACTION_UPPER));
+    }
 
+    /**
+     * Checks if the tile contains blue tears
+     * @return true if it contains blue tears, false otherwise
+     */
     private boolean tileHasBlueTears(Tile t) {
         return ctx.objects.select().at(t).name(BLUE_TEARS_STR).peek().valid();
     }
-        
+
+    /**
+     * Checks if the player is facing blue tears
+     * @return true if facing blue tears, false otherwise
+     */
     private boolean facingBlueTears() {
         Tile inFront = ctx.players.local().tile();
             
@@ -62,7 +111,13 @@ public class CollectTears implements Task {
         return tileHasBlueTears(inFront);
             
     }
-        
+
+    /**
+     * Clicks the closest weeping wall that has blue tears
+     * note: the weeping walls themselves are neither blue nor green,
+     * the tears are separate objects located at the same tile as a
+     * weeping wall
+     */
     private void clickWeepingWall() {
             
         // Filter the "Weeping walls" that don't have blue streams
@@ -98,32 +153,6 @@ public class CollectTears implements Task {
                     });
             }
         }
-    }
-        
-    @Override
-    public void execute() {
-        // Click blue tears
-        Player p = ctx.players.local();
-            
-        // If the player is idle or not in right place, AND not moving TO
-        // the right place...
-        if ((p.idle() || !facingBlueTears())
-            && !p.inMotion()) {
-            clickWeepingWall();
-        }
-            
-        // If we are moving, only switch targets if the initial target is
-        // no longer blue
-        if (p.inMotion()
-            && targetTile != null
-            && !tileHasBlueTears(targetTile)) {
-            clickWeepingWall();
-        }
-            
-        // Above could obviously be in one 'if', I've left it like this
-        // because it is easier to read -- the second 'if' interrupts
-        // movement if the stream changes colour while moving
-        Condition.sleep(Random.nextInt(REACTION_LOWER, REACTION_UPPER));
     }
         
 }

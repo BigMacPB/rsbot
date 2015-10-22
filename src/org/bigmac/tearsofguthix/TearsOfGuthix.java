@@ -19,22 +19,28 @@ import org.powerbot.script.rt6.Player;
 import org.powerbot.script.rt6.Widget;
 
 
+/**
+ * A polling script for the tears of guthix minigame
+ */
 @Script.Manifest(
         name = "Tears of Guthix", 
         description = "Learning RSBot", 
         properties = "client=6"
 )
 public class TearsOfGuthix extends PollingScript<ClientContext> {
-    
+
+    /** The list of tasks to check each poll */
     private static final List<Task> TASK_LIST = new ArrayList<>();
-    
+
+    /** When the script starts, fill the task list */
     @Override
     public void start() {
         System.out.println("Script started");
         TASK_LIST.add(new StartMinigame(ctx));
         TASK_LIST.add(new CollectTears(ctx));
     }
-    
+
+    /** Each poll, check the tasks in the task lists */
     @Override
     public void poll() {
         for (Task task : TASK_LIST) {
@@ -44,6 +50,7 @@ public class TearsOfGuthix extends PollingScript<ClientContext> {
         }
     }
 
+    /** When the script ends (nothing to be done) */
     @Override
     public void stop() {
         System.out.println("Script stopped");
